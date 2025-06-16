@@ -57,6 +57,7 @@ const FacebookAuth = () => {
   const handleAccountSelect = (account: AdAccount) => {
     setSelectedAccount(account);
     setIsDropdownOpen(false);
+    setCurrentStep(3);
     
     toast({
       title: "Account Selected",
@@ -86,21 +87,21 @@ const FacebookAuth = () => {
         {/* Step 1 */}
         <div className="flex flex-col items-center">
           <div className={`relative flex items-center justify-center w-16 h-16 rounded-full border-2 transition-all duration-500 ${
-            currentStep >= 1 
-              ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/50' 
+            isAuthenticated
+              ? 'border-green-500 bg-green-500/20 shadow-lg shadow-green-500/50' 
               : 'border-gray-600 bg-gray-800'
           }`}>
             <span className={`text-lg font-bold transition-colors duration-500 ${
-              currentStep >= 1 ? 'text-purple-300' : 'text-gray-400'
+              isAuthenticated ? 'text-green-300' : 'text-gray-400'
             }`}>
               1
             </span>
-            {currentStep >= 1 && (
-              <div className="absolute inset-0 rounded-full bg-purple-500/10 animate-pulse" />
+            {isAuthenticated && (
+              <div className="absolute inset-0 rounded-full bg-green-500/10 animate-pulse" />
             )}
           </div>
           <p className={`mt-3 text-sm font-medium transition-colors duration-500 ${
-            currentStep >= 1 ? 'text-purple-300' : 'text-gray-400'
+            isAuthenticated ? 'text-green-300' : 'text-gray-400'
           }`}>
             Authenticate
           </p>
@@ -109,29 +110,29 @@ const FacebookAuth = () => {
         {/* Connector Line */}
         <div className="relative w-24 h-1">
           <div className="absolute inset-0 bg-gray-600 rounded-full" />
-          <div className={`absolute inset-0 bg-gradient-to-r from-purple-500 to-lime-400 rounded-full transition-all duration-1000 ${
-            currentStep >= 2 ? 'w-full' : 'w-0'
+          <div className={`absolute inset-0 bg-green-500 rounded-full transition-all duration-1000 ${
+            selectedAccount ? 'w-full' : 'w-0'
           }`} />
         </div>
 
         {/* Step 2 */}
         <div className="flex flex-col items-center">
           <div className={`relative flex items-center justify-center w-16 h-16 rounded-full border-2 transition-all duration-500 ${
-            currentStep >= 2 
-              ? 'border-lime-400 bg-lime-400/20 shadow-lg shadow-lime-400/50' 
+            selectedAccount
+              ? 'border-green-500 bg-green-500/20 shadow-lg shadow-green-500/50' 
               : 'border-gray-600 bg-gray-800'
           }`}>
             <span className={`text-lg font-bold transition-colors duration-500 ${
-              currentStep >= 2 ? 'text-lime-300' : 'text-gray-400'
+              selectedAccount ? 'text-green-300' : 'text-gray-400'
             }`}>
               2
             </span>
-            {currentStep >= 2 && (
-              <div className="absolute inset-0 rounded-full bg-lime-400/10 animate-pulse" />
+            {selectedAccount && (
+              <div className="absolute inset-0 rounded-full bg-green-500/10 animate-pulse" />
             )}
           </div>
           <p className={`mt-3 text-sm font-medium transition-colors duration-500 ${
-            currentStep >= 2 ? 'text-lime-300' : 'text-gray-400'
+            selectedAccount ? 'text-green-300' : 'text-gray-400'
           }`}>
             Select Account
           </p>
@@ -176,7 +177,7 @@ const FacebookAuth = () => {
             <div className="w-full relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full flex items-center justify-between px-6 py-4 bg-gray-800 border border-gray-700 rounded-xl text-white hover:bg-gray-750 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-400/50"
+                className="w-full flex items-center justify-between px-6 py-4 bg-gray-800 border border-gray-700 rounded-xl text-white hover:bg-gray-750 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-400/50"
                 aria-expanded={isDropdownOpen}
                 aria-haspopup="listbox"
               >
