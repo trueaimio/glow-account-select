@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Facebook, ChevronDown, CheckCircle, Building2, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -203,13 +202,14 @@ const FacebookAuth = () => {
 
               {/* Dropdown Panel */}
               {isDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 z-[99999] animate-fade-in">
+                <div className="absolute top-full left-0 right-0 mt-2 z-[99999] animate-fade-in bg-gray-800">
                   <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
-                    <div className="max-h-64 overflow-y-auto bg-gray-800">
+                    <div className="max-h-64 overflow-y-auto bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
                       {adAccounts.map((account) => (
                         <div
                           key={account.id}
                           className="flex items-center justify-between px-4 py-3 bg-gray-800 hover:bg-gray-700 transition-colors duration-150 cursor-pointer border-b border-gray-700 last:border-b-0"
+                          style={{ backgroundColor: '#1f2937' }}
                           onClick={() => handleAccountSelect(account)}
                           role="option"
                           tabIndex={0}
@@ -219,13 +219,13 @@ const FacebookAuth = () => {
                             }
                           }}
                         >
-                          <div className="flex items-center space-x-3 flex-1 bg-gray-800">
+                          <div className="flex items-center space-x-3 flex-1 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
                             <Building2 className="w-4 h-4 text-gray-400" />
-                            <div className="flex-1 bg-gray-800">
-                              <p className="text-white font-medium bg-gray-800">{account.name}</p>
-                              <p className="text-sm text-gray-400 bg-gray-800">{account.accountId}</p>
+                            <div className="flex-1 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
+                              <p className="text-white font-medium bg-gray-800" style={{ backgroundColor: '#1f2937' }}>{account.name}</p>
+                              <p className="text-sm text-gray-400 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>{account.accountId}</p>
                             </div>
-                            <div className="flex items-center space-x-2 bg-gray-800">
+                            <div className="flex items-center space-x-2 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 account.isActive 
                                   ? 'bg-green-900/50 text-green-300 border border-green-700' 
@@ -239,6 +239,7 @@ const FacebookAuth = () => {
                                   copyToClipboard(account.accountId, account.id);
                                 }}
                                 className="p-1 hover:bg-gray-600 rounded transition-colors duration-150 bg-gray-800"
+                                style={{ backgroundColor: '#1f2937' }}
                                 title="Copy Account ID"
                               >
                                 {copiedId === account.id ? (
