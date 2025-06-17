@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Facebook, ChevronDown, CheckCircle, Building2, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -203,7 +202,7 @@ const FacebookAuth = () => {
 
               {/* Dropdown Panel */}
               {isDropdownOpen && (
-                <div className="fixed left-0 right-0 top-full mt-2 mx-6 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-[9999] max-w-md animate-fade-in backdrop-blur-sm">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-[9999] animate-fade-in">
                   <div className="max-h-64 overflow-y-auto bg-gray-800 rounded-xl">
                     {adAccounts.map((account) => (
                       <div
