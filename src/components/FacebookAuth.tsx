@@ -82,6 +82,15 @@ const FacebookAuth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex flex-col items-center justify-center p-6">
+      {/* Logo */}
+      <div className="mb-12">
+        <img 
+          src="/lovable-uploads/2c9050c4-ea79-41eb-8e5d-570d860f9197.png" 
+          alt="AI Logo" 
+          className="w-24 h-24 object-contain"
+        />
+      </div>
+
       {/* Step Indicators */}
       <div className="mb-16 flex items-center space-x-8">
         {/* Step 1 */}
