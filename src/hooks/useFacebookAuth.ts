@@ -10,12 +10,18 @@ export const useFacebookAuth = () => {
   const [selectedAccount, setSelectedAccount] = useState<AdAccount | null>(null);
   const { toast } = useToast();
 
-  const adAccounts: AdAccount[] = [
-    { id: '1', name: 'Acme Main Account', accountId: 'AD_123456789', isActive: true },
-    { id: '2', name: 'Demo Ad Account', accountId: 'AD_987654321', isActive: true },
-    { id: '3', name: 'Marketing Pro Account', accountId: 'AD_456789123', isActive: false },
-    { id: '4', name: 'Testing Account', accountId: 'AD_789123456', isActive: true },
-  ];
+  // Generate test data with 150 accounts to simulate large lists
+  const adAccounts: AdAccount[] = Array.from({ length: 150 }, (_, i) => {
+    const companies = ['Acme', 'Demo', 'Marketing Pro', 'Testing', 'Global Corp', 'TechStart', 'Brand Co', 'Digital Agency', 'E-commerce Hub', 'Local Business'];
+    const types = ['Main Account', 'Campaign Account', 'Testing Account', 'Backup Account', 'Regional Account'];
+    
+    return {
+      id: `${i + 1}`,
+      name: `${companies[i % companies.length]} ${types[i % types.length]} ${Math.floor(i / 10) + 1}`,
+      accountId: `AD_${(123456789 + i).toString()}`,
+      isActive: Math.random() > 0.3 // 70% active accounts
+    };
+  });
 
   const handleFacebookLogin = async () => {
     setIsLoading(true);

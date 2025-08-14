@@ -1,8 +1,9 @@
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Building2, ChevronDown, Copy, Check, Search } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Building2, ChevronDown, Search } from 'lucide-react';
 import { AdAccount } from '@/types/facebook';
 import { useToast } from '@/hooks/use-toast';
+import AdAccountItem from './AdAccountItem';
 
 interface AdAccountDropdownProps {
   isAuthenticated: boolean;
@@ -10,6 +11,10 @@ interface AdAccountDropdownProps {
   adAccounts: AdAccount[];
   onAccountSelect: (account: AdAccount) => void;
 }
+
+const ITEM_HEIGHT = 72; // Height of each account item in pixels
+const MAX_VISIBLE_ITEMS = 6; // Maximum items to show before scrolling
+const BUFFER_SIZE = 5; // Extra items to render for smooth scrolling
 
 const AdAccountDropdown = ({ 
   isAuthenticated, 
@@ -20,23 +25,51 @@ const AdAccountDropdown = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [scrollTop, setScrollTop] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Filtered accounts with performance optimization
   const filteredAccounts = useMemo(() => {
     if (!searchTerm.trim()) return adAccounts;
+    const term = searchTerm.toLowerCase();
     return adAccounts.filter(account =>
-      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      account.accountId.toLowerCase().includes(searchTerm.toLowerCase())
+      account.name.toLowerCase().includes(term) ||
+      account.accountId.toLowerCase().includes(term)
     );
   }, [adAccounts, searchTerm]);
+
+  // Virtual scrolling calculations
+  const { visibleItems, containerHeight, offsetY } = useMemo(() => {
+    const totalItems = filteredAccounts.length;
+    if (totalItems === 0) return { visibleItems: [], containerHeight: 0, offsetY: 0 };
+
+    const containerHeight = Math.min(totalItems * ITEM_HEIGHT, MAX_VISIBLE_ITEMS * ITEM_HEIGHT);
+    const clampedScrollTop = Math.max(0, Math.min(scrollTop, (totalItems - MAX_VISIBLE_ITEMS) * ITEM_HEIGHT));
+    const startIndex = Math.floor(clampedScrollTop / ITEM_HEIGHT);
+    const endIndex = Math.min(
+      startIndex + MAX_VISIBLE_ITEMS + BUFFER_SIZE, 
+      totalItems
+    );
+
+    const visibleItems = filteredAccounts.slice(
+      Math.max(0, startIndex - BUFFER_SIZE),
+      endIndex
+    );
+
+    const offsetY = Math.max(0, startIndex - BUFFER_SIZE) * ITEM_HEIGHT;
+
+    return { visibleItems, containerHeight, offsetY };
+  }, [filteredAccounts, scrollTop]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
         setSearchTerm('');
+        setScrollTop(0);
       }
     };
 
@@ -50,7 +83,12 @@ const AdAccountDropdown = ({
     }
   }, [isDropdownOpen]);
 
-  const copyToClipboard = async (text: string, accountId: string) => {
+  // Reset scroll when search changes
+  useEffect(() => {
+    setScrollTop(0);
+  }, [searchTerm]);
+
+  const copyToClipboard = useCallback(async (text: string, accountId: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedId(accountId);
@@ -63,13 +101,18 @@ const AdAccountDropdown = ({
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
-  };
+  }, [toast]);
 
-  const handleAccountSelect = (account: AdAccount) => {
+  const handleAccountSelect = useCallback((account: AdAccount) => {
     onAccountSelect(account);
     setIsDropdownOpen(false);
     setSearchTerm('');
-  };
+    setScrollTop(0);
+  }, [onAccountSelect]);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
 
   if (!isAuthenticated) return null;
 
@@ -105,68 +148,67 @@ const AdAccountDropdown = ({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search ad accounts..."
+                  placeholder={`Search ${adAccounts.length} ad accounts...`}
                   className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-transparent"
                 />
               </div>
             </div>
             
-            {/* Accounts List */}
-            <div className="max-h-64 overflow-y-auto bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
+            {/* Virtual Scrolled Accounts List */}
+            <div 
+              className="relative overflow-y-auto bg-gray-800" 
+              style={{ 
+                backgroundColor: '#1f2937',
+                height: `${containerHeight}px`,
+                maxHeight: '320px'
+              }}
+              onScroll={handleScroll}
+              ref={scrollContainerRef}
+            >
               {filteredAccounts.length > 0 ? (
-                filteredAccounts.map((account) => (
+                <div
+                  style={{
+                    height: `${filteredAccounts.length * ITEM_HEIGHT}px`,
+                    position: 'relative'
+                  }}
+                >
                   <div
-                    key={account.id}
-                    className="flex items-center justify-between px-4 py-3 bg-gray-800 hover:bg-gray-700 transition-colors duration-150 cursor-pointer border-b border-gray-700 last:border-b-0"
-                    style={{ backgroundColor: '#1f2937' }}
-                    onClick={() => handleAccountSelect(account)}
-                    role="option"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleAccountSelect(account);
-                      }
+                    style={{
+                      transform: `translateY(${offsetY}px)`,
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0
                     }}
                   >
-                    <div className="flex items-center space-x-3 flex-1 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
-                      <Building2 className="w-4 h-4 text-gray-400" />
-                      <div className="flex-1 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
-                        <p className="text-white font-medium bg-gray-800" style={{ backgroundColor: '#1f2937' }}>{account.name}</p>
-                        <p className="text-sm text-gray-400 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>{account.accountId}</p>
-                      </div>
-                      <div className="flex items-center space-x-2 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          account.isActive 
-                            ? 'bg-green-900/50 text-green-300 border border-green-700' 
-                            : 'bg-gray-900/50 text-gray-400 border border-gray-700'
-                        }`}>
-                          {account.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(account.accountId, account.id);
-                          }}
-                          className="p-1 hover:bg-gray-600 rounded transition-colors duration-150 bg-gray-800"
-                          style={{ backgroundColor: '#1f2937' }}
-                          title="Copy Account ID"
-                        >
-                          {copiedId === account.id ? (
-                            <Check className="w-4 h-4 text-green-400" />
-                          ) : (
-                            <Copy className="w-4 h-4 text-gray-400" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                    {visibleItems.map((account) => (
+                      <AdAccountItem
+                        key={account.id}
+                        account={account}
+                        onSelect={handleAccountSelect}
+                        onCopy={copyToClipboard}
+                        isSelected={selectedAccount?.id === account.id}
+                        isCopied={copiedId === account.id}
+                      />
+                    ))}
                   </div>
-                ))
+                </div>
               ) : (
                 <div className="px-4 py-6 text-center text-gray-400 bg-gray-800" style={{ backgroundColor: '#1f2937' }}>
                   <p className="text-sm">No ad accounts found matching "{searchTerm}"</p>
                 </div>
               )}
             </div>
+
+            {/* Results counter for large lists */}
+            {adAccounts.length > 20 && (
+              <div className="px-3 py-2 text-xs text-gray-500 bg-gray-800 border-t border-gray-700">
+                {searchTerm 
+                  ? `${filteredAccounts.length} of ${adAccounts.length} accounts`
+                  : `${adAccounts.length} total accounts`
+                }
+              </div>
+            )}
           </div>
         </div>
       )}
